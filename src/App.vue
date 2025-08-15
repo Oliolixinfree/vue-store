@@ -1,4 +1,7 @@
 <script setup>
+import { onMounted, provide, reactive, ref, watch } from 'vue'
+import axios from 'axios'
+
 import Wrapper from './components/Wrapper.vue'
 import Header from './components/Header.vue'
 import Container from './components/Container.vue'
@@ -6,72 +9,91 @@ import CardList from './components/CardList.vue'
 import Drawer from './components/Drawer.vue'
 import SearchIcon from './icons/SearchIcon.vue'
 
-const items = [
-  {
-    id: 1,
-    author: 'Enthrallment',
-    title: "AGAINST THE WILL TO LIVE 'Macabre Universe Embrace'",
-    price: '$4.99',
-    imageUrl: '/albums/1.jpg',
+const items = ref([])
+
+const baseUrl = 'https://dfa9f657ebcd5252.mokky.dev'
+
+const filters = reactive({
+  searchQuery: '',
+  sortBy: 'title',
+})
+
+const onChangeSelect = (event) => {
+  filters.sortBy = event.target.value
+}
+
+const onChangeSearchInput = (event) => {
+  filters.searchQuery = event.target.value
+}
+
+const fetchFavorites = async () => {
+  try {
+    const { data: favorites } = await axios.get(`${baseUrl}/favorites`)
+
+    items.value = items.value.map((item) => {
+      const favorite = favorites.find((favorite) => favorite.parentId === item.id)
+
+      if (!favorite) {
+        return item
+      }
+
+      return {
+        ...item,
+        isFavorite: true,
+        favoriteId: favorite.id,
+      }
+    })
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const fetchItems = async () => {
+  try {
+    const params = {
+      sortBy: filters.sortBy,
+    }
+
+    if (filters.searchQuery) {
+      params.title = `*${filters.searchQuery}*`
+    }
+
+    const { data } = await axios.get(`${baseUrl}/items`, {
+      params,
+    })
+
+    items.value = data.map((obj) => ({
+      ...obj,
+      isFavorite: false,
+      isAdded: false,
+    }))
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const addToFavorite = async (item) => {
+  item.isFavorite = !item.isFavorite
+
+  console.log(item)
+}
+
+onMounted(
+  async () => {
+    await fetchItems()
+    await fetchFavorites()
   },
-  {
-    id: 2,
-    author: 'Blood Everywhere',
-    title: 'Enthusiasm',
-    price: '$3',
-    imageUrl: '/albums/2.jpg',
-  },
-  {
-    id: 3,
-    author: 'Auld',
-    title: "After Today/Everyone Else's Brilliant Answers",
-    price: '$2',
-    imageUrl: '/albums/3.jpg',
-  },
-  {
-    id: 4,
-    author: 'Orbital Decay',
-    title: 'broken broadcast',
-    price: '$4.99',
-    imageUrl: '/albums/4.jpg',
-  },
-  {
-    id: 5,
-    author: 'Seconds Before',
-    title: 'Further Destinations',
-    price: '$4.99',
-    imageUrl: '/albums/5.jpg',
-  },
-  {
-    id: 6,
-    author: 'chaoscollectors',
-    title: 'The Lost Art Of Communicating',
-    price: '$5',
-    imageUrl: '/albums/6.jpg',
-  },
-  {
-    id: 7,
-    author: 'Mania',
-    title: 'Nude Gay Fight for Sexual Domination EP',
-    price: '$3.99',
-    imageUrl: '/albums/7.jpg',
-  },
-  { id: 8, author: 'Sharp Shock', title: 'Youth Club ', price: '$8', imageUrl: '/albums/8.jpg' },
-  {
-    id: 9,
-    author: 'Shiny Red Nothing',
-    title: 'Silk Of Red Esteem (Redux) ',
-    price: '$8',
-    imageUrl: '/albums/9.jpg',
-  },
-  {
-    id: 10,
-    author: 'Absolute',
-    title: 'Tonal Imagery ',
-    price: '$8',
-    imageUrl: '/albums/10.jpg',
-  },
-]
+
+  // fetch('https://dfa9f657ebcd5252.mokky.dev/items')
+  //   .then((res) => res.json())
+  //   .then((data) => {
+  //     console.log(data)
+  //   })
+)
+
+watch(filters, fetchItems)
+
+provide('addToFavorite', addToFavorite)
 </script>
 
 <template>
@@ -85,17 +107,24 @@ const items = [
           <div class="relative">
             <SearchIcon class="absolute top-1 left-1" />
             <input
+              @input="onChangeSearchInput"
               class="border border-neutral-200 outline-none focus:ring focus:ring-neutral-300 rounded-lg py-0.5 pl-8 pr-1.5"
               type="text"
-              placeholder="Search something..."
+              placeholder="Search albums..."
             />
           </div>
           <select
+            @change="onChangeSelect"
             class="border border-neutral-200 rounded-lg px-1.5 py-1 outline-none focus:ring focus:ring-neutral-300"
           >
-            <option value="all">Default</option>
-            <option value="highPrice">High price</option>
-            <option value="lowPrice">Low price</option>
+            <option value="title">Title (a-z)</option>
+            <option value="-title">Title (z-a)</option>
+            <option value="author">Author (a-z)</option>
+            <option value="-author">Author (z-a)</option>
+            <option value="price">Low price</option>
+            <option value="-price">High price</option>
+            <option value="id">Oldest</option>
+            <option value="-id">Newest</option>
           </select>
         </div>
       </div>

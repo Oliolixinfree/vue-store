@@ -1,16 +1,12 @@
 <script setup>
+import { inject } from 'vue'
 import Card from './Card.vue'
 
 defineProps({
   items: Array,
 })
 
-const onClickAdd = () => {
-  alert('Added to cart!')
-}
-const onClickFavorite = () => {
-  alert('Added to favorite!')
-}
+const addToFavorite = inject('addToFavorite')
 </script>
 
 <template>
@@ -18,14 +14,15 @@ const onClickFavorite = () => {
     <Card
       v-for="item in items"
       :key="item.id"
+      :id="item.id"
       :title="item.title"
       :author="item.author"
       :image-url="item.imageUrl"
       :price="item.price"
-      :is-added="true"
-      :is-favorite="true"
+      :isAdded="true"
+      :isFavorite="item.isFavorite"
       :onClickAdd="onClickAdd"
-      :onClickFavorite="onClickFavorite"
+      :onClickFavorite="() => addToFavorite(item)"
     />
   </div>
 </template>
