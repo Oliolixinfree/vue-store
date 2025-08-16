@@ -1,16 +1,21 @@
 <script setup>
 import ArrowBackIcon from '@/icons/ArrowBackIcon.vue'
-import CartItem from './CartItem.vue'
 import CartItemList from './CartItemList.vue'
+
+const emit = defineEmits(['handleCloseDrawer'])
 </script>
 
 <template>
-  <div class="fixed top-0 left-0 w-full h-full z-10 bg-black opacity-50"></div>
+  <div
+    @click="() => emit('handleCloseDrawer')"
+    class="fixed top-0 left-0 w-full h-full z-10 bg-black opacity-50"
+  ></div>
   <div
     class="flex flex-col bg-white min-w-74 max-w-1/3 w-full h-full fixed right-0 top-0 z-20 px-6 py-4"
   >
     <div class="flex items-center gap-4 mb-4">
       <ArrowBackIcon
+        @click="() => emit('handleCloseDrawer')"
         class="transition hover:-translate-x-1 hover:fill-neutral-500/80 cursor-pointer"
       />
       <h2 class="text-2xl font-semibold">Card</h2>
