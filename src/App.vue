@@ -10,8 +10,13 @@ import Drawer from './components/Drawer.vue'
 import SearchIcon from './icons/SearchIcon.vue'
 
 const items = ref([])
+const isDrawerOpen = ref(false)
 
 const baseUrl = 'https://dfa9f657ebcd5252.mokky.dev'
+
+const handleCloseDrawer = () => (isDrawerOpen.value = false)
+
+const handleOpenDrawer = () => (isDrawerOpen.value = true)
 
 const filters = reactive({
   searchQuery: '',
@@ -65,6 +70,7 @@ const fetchItems = async () => {
     items.value = data.map((obj) => ({
       ...obj,
       isFavorite: false,
+      favoriteId: null,
       isAdded: false,
     }))
   } catch (error) {
@@ -73,9 +79,22 @@ const fetchItems = async () => {
 }
 
 const addToFavorite = async (item) => {
-  item.isFavorite = !item.isFavorite
-
-  console.log(item)
+  try {
+    if (!item.isFavorite) {
+      const obj = {
+        parentId: item.id,
+      }
+      item.isFavorite = true
+      const { data } = await axios.post(`${baseUrl}/favorites`, obj)
+      item.favoriteId = data.id
+    } else {
+      item.isFavorite = false
+      await axios.delete(`${baseUrl}/favorites/${item.favoriteId}`)
+      item.favoriteId = null
+    }
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 onMounted(
@@ -93,16 +112,19 @@ onMounted(
 
 watch(filters, fetchItems)
 
-provide('addToFavorite', addToFavorite)
+provide('cartActions', {
+  handleCloseDrawer,
+  handleOpenDrawer,
+})
 </script>
 
 <template>
-  <!-- <Drawer /> -->
+  <Drawer v-if="isDrawerOpen" @handleCloseDrawer="handleCloseDrawer" />
   <Wrapper>
     <Header />
     <Container>
       <div class="flex justify-between mb-4">
-        <h2 class="text-2xl font-semibold my-auto">All items</h2>
+        <h2 class="text-2xl font-semibold my-auto">All music</h2>
         <div class="space-y-2">
           <div class="relative">
             <SearchIcon class="absolute top-1 left-1" />
@@ -128,7 +150,7 @@ provide('addToFavorite', addToFavorite)
           </select>
         </div>
       </div>
-      <CardList :items="items" />
+      <CardList :items="items" @addToFavorite="addToFavorite" />
     </Container>
   </Wrapper>
 </template>
