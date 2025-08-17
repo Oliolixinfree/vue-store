@@ -1,14 +1,14 @@
 <script setup>
+import { inject } from 'vue'
 import FavoriteIcon from '@/icons/FavoriteIcon.vue'
 import ProfileIcon from '@/icons/ProfileIcon.vue'
 import CartIcon from '@/icons/CartIcon.vue'
-import { inject } from 'vue'
 
 defineProps({
   isMobileMenuOpen: Boolean,
 })
 
-const { handleOpenDrawer } = inject('cart')
+const { handleOpenDrawer, totalPrice } = inject('cart')
 </script>
 
 <template>
@@ -30,7 +30,7 @@ const { handleOpenDrawer } = inject('cart')
           class="flex items-center gap-2 text-neutral-500 hover:text-neutral-500/80 cursor-pointer"
         >
           <CartIcon />
-          <span class="font-semibold">1000</span>
+          <span class="font-semibold">{{ totalPrice.toFixed(2) }} $</span>
         </li>
         <li
           class="flex items-center gap-2 text-neutral-500 hover:text-neutral-500/80 cursor-pointer"
