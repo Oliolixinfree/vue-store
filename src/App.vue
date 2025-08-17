@@ -49,9 +49,12 @@ const filters = reactive({
 const onChangeSelect = (event) => {
   filters.sortBy = event.target.value
 }
-
+let debounceTimer
 const onChangeSearchInput = (event) => {
-  filters.searchQuery = event.target.value
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    filters.searchQuery = event.target.value
+  }, 300)
 }
 
 const addToCart = (item) => {
@@ -176,8 +179,15 @@ const addToFavorite = async (item) => {
 
 onMounted(
   async () => {
+    cart.value = JSON.parse(localStorage.getItem('cart')) || []
+
     await fetchItems()
     await fetchFavorites()
+
+    items.value = items.value.map((item) => ({
+      ...item,
+      isAdded: cart.value.some((cartItem) => cartItem.id === item.id),
+    }))
   },
 
   // fetch('https://dfa9f657ebcd5252.mokky.dev/items')
@@ -187,7 +197,9 @@ onMounted(
   //   })
 )
 
-watch(filters, fetchItems)
+watch(filters, fetchItems, { deep: true })
+
+watch(cart, () => localStorage.setItem('cart', JSON.stringify(cart.value)), { deep: true })
 
 provide('cart', {
   cart,
@@ -205,6 +217,7 @@ provide('cart', {
 <template>
   <Drawer
     v-if="isDrawerOpen"
+    :cart-items="cart.length"
     :total-price="totalPrice"
     :tax-cart="taxCart"
     :is-creating-order="isCreatingOrder"
@@ -213,7 +226,7 @@ provide('cart', {
   />
   <Wrapper>
     <Header :is-mobile-menu-open="isMobileMenuOpen" @toggle-mobile-menu="toggleMobileMenu" />
-    <Container>
+    <Container class="flex-1">
       <div class="flex flex-col gap-2 sm:flex-row justify-between mb-4">
         <h2 class="text-2xl font-semibold my-auto">All music</h2>
         <div class="space-y-2">
@@ -242,10 +255,14 @@ provide('cart', {
         </div>
       </div>
       <CardList
+        v-if="items.length > 0"
         :items="items"
         @add-to-favorite="addToFavorite"
         @on-click-add-plus="onClickAddPlus"
       />
+      <p v-else class="flex items-center justify-center text-neutral-400 text-center h-64">
+        Nothing found.
+      </p>
     </Container>
     <Footer />
   </Wrapper>
