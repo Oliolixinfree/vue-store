@@ -1,18 +1,61 @@
-<script setup lang="ts">
+<script setup>
+import { ref } from 'vue'
+import AddIcon from '@/icons/AddIcon.vue'
 import DeleteIcon from '@/icons/DeleteIcon.vue'
+import RemoveIcon from '@/icons/RemoveIcon.vue'
+
+defineProps({
+  id: Number,
+  imageUrl: String,
+  title: String,
+  author: String,
+  price: Number,
+})
+
+const quantity = ref(1)
+
+const increaseQuantity = () => quantity.value++
+const decreaseQuantity = () => {
+  if (quantity.value === 1) return
+  quantity.value--
+}
 </script>
 
 <template>
-  <div class="flex items-center gap-4 border border-neutral-200 p-4 rounded-lg">
-    <img class="w-16 h-16 rounded-lg" src="/albums/1.jpg" alt="Album" />
+  <div class="flex items-start gap-2 border border-neutral-200 p-4 rounded-lg">
+    <img class="w-16 h-16 rounded-lg" :src="imageUrl" :alt="title" />
+    <div class="flex flex-col flex-1">
+      <p class="font-medium line-clamp-2">{{ title }}</p>
+      <div class="flex items-center gap-2">
+        <span class="text-neutral-400">by</span>
+        <span class="cursor-pointer hover:underline hover:text-neutral-500/80 transition">
+          {{ author }}
+        </span>
+      </div>
 
-    <div class="flex flex-col w-full">
-      <p>Album name</p>
+      <div class="flex gap-2">
+        <span class="text-neutral-400">Price: </span>
+        <span class="font-semibold">{{ (price * quantity).toFixed(2) }} $</span>
+      </div>
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <div
+            @click="decreaseQuantity"
+            class="bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 hover:shadow-md p-0.5 rounded-lg transition cursor-pointer"
+          >
+            <RemoveIcon class="w-5 h-5" />
+          </div>
+          <span class="font-medium">{{ quantity }}</span>
+          <div
+            @click="increaseQuantity"
+            class="bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 hover:shadow-md p-0.5 rounded-lg transition cursor-pointer"
+          >
+            <AddIcon class="w-5 h-5" />
+          </div>
+        </div>
 
-      <div class="flex justify-between">
-        <span class="">4.99$</span>
         <div
-          class="bg-neutral-100 p-0.5 rounded-lg opacity-80 hover:opacity-100 transition cursor-pointer"
+          class="self-end bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 hover:shadow-md p-0.5 rounded-lg transition cursor-pointer"
         >
           <DeleteIcon />
         </div>

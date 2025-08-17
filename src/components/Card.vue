@@ -19,7 +19,7 @@ const props = defineProps({
 
 <template>
   <div
-    class="relative bg-white border border-neutral-200 rounded-lg p-6 cursor-pointer transition hover:-translate-y-0.5 hover:shadow-md"
+    class="flex flex-col relative bg-white border border-neutral-200 rounded-lg p-6 cursor-pointer transition hover:-translate-y-0.5 hover:shadow-md"
   >
     <div
       @click="onClickFavorite"
@@ -29,12 +29,13 @@ const props = defineProps({
       <FavoriteCheckedIcon v-if="isFavorite" />
       <FavouriteIcon v-else />
     </div>
-    <img class="w-50 h-50 rounded-lg" :src="imageUrl" alt="Album" />
-    <!-- <div class="w-50 h-50 bg-neutral-400/80 rounded-lg"></div> -->
-    <p class="font-medium mt-2">{{ title }}</p>
-    <div class="flex items-center gap-2">
-      <span class="text-neutral-400">by</span>
-      <span class="hover:underline hover:text-neutral-500/80 transition">{{ author }}</span>
+    <img class="object-cover rounded-lg" :src="imageUrl" alt="Album" />
+    <div class="flex-1">
+      <p class="font-medium mt-2">{{ title }}</p>
+      <div class="flex items-center gap-2">
+        <span class="text-neutral-400">by</span>
+        <span class="hover:underline hover:text-neutral-500/80 transition">{{ author }}</span>
+      </div>
     </div>
     <div class="flex items-center justify-between mt-4">
       <div class="flex flex-col">
@@ -43,8 +44,11 @@ const props = defineProps({
       </div>
       <div
         @click="onClickAdd"
-        :class="isAdded && 'bg-lime-200'"
-        class="bg-neutral-100 p-0.5 rounded-lg hover:bg-neutral-200 hover:shadow-md"
+        class="p-0.5 rounded-lg hover:shadow-md"
+        :class="{
+          'bg-lime-200 hover:bg-lime-300': isAdded,
+          'bg-neutral-100 hover:bg-neutral-200': !isAdded,
+        }"
       >
         <CheckIcon v-if="isAdded" />
         <AddIcon v-else />
