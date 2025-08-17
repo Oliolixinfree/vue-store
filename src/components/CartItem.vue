@@ -10,6 +10,9 @@ defineProps({
   title: String,
   author: String,
   price: Number,
+  released: String,
+  gener: String,
+  type: String,
 })
 
 const quantity = ref(1)

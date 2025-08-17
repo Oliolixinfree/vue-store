@@ -10,6 +10,9 @@ const props = defineProps({
   title: String,
   author: String,
   price: Number,
+  released: String,
+  gener: String,
+  type: String,
   isFavorite: Boolean,
   isAdded: Boolean,
   onClickAdd: Function,
@@ -35,6 +38,21 @@ const props = defineProps({
       <div class="flex items-center gap-2">
         <span class="text-neutral-400">by</span>
         <span class="hover:underline hover:text-neutral-500/80 transition">{{ author }}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-neutral-400">Released: </span>
+        <span class="hover:underline hover:text-neutral-500/80 transition">{{ released }}</span>
+      </div>
+      <span class="text-neutral-400 capitalize">{{ type }}</span>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <div
+        v-for="(genre, index) in gener.split(',').map((g) => g.trim())"
+        :key="index"
+        class="bg-neutral-300 text-white px-1 py-0.5 rounded-lg"
+      >
+        {{ genre }}
       </div>
     </div>
     <div class="flex items-center justify-between mt-4">

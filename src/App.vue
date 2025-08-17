@@ -13,12 +13,16 @@ import SearchIcon from './icons/SearchIcon.vue'
 const items = ref([])
 const cart = ref([])
 const isDrawerOpen = ref(false)
+const isMobileMenuOpen = ref(false)
 
 const baseUrl = 'https://dfa9f657ebcd5252.mokky.dev'
 
 const handleCloseDrawer = () => (isDrawerOpen.value = false)
-
 const handleOpenDrawer = () => (isDrawerOpen.value = true)
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
+}
 
 const filters = reactive({
   searchQuery: '',
@@ -134,9 +138,9 @@ provide('cart', {
 </script>
 
 <template>
-  <Drawer v-if="isDrawerOpen" @handleCloseDrawer="handleCloseDrawer" />
+  <Drawer v-if="isDrawerOpen" @handle-close-drawer="handleCloseDrawer" />
   <Wrapper>
-    <Header />
+    <Header :is-mobile-menu-open="isMobileMenuOpen" @toggle-mobile-menu="toggleMobileMenu" />
     <Container>
       <div class="flex flex-col gap-2 sm:flex-row justify-between mb-4">
         <h2 class="text-2xl font-semibold my-auto">All music</h2>
@@ -165,7 +169,7 @@ provide('cart', {
           </select>
         </div>
       </div>
-      <CardList :items="items" @addToFavorite="addToFavorite" @addToCart="addToCart" />
+      <CardList :items="items" @add-to-favorite="addToFavorite" @add-to-cart="addToCart" />
     </Container>
     <Footer />
   </Wrapper>
