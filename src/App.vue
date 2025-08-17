@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, provide, reactive, ref, watch } from 'vue'
+import { computed, onMounted, provide, reactive, ref, watch } from 'vue'
 import axios from 'axios'
 
 import Wrapper from './components/Wrapper.vue'
@@ -10,15 +10,32 @@ import CardList from './components/CardList.vue'
 import Drawer from './components/Drawer.vue'
 import SearchIcon from './icons/SearchIcon.vue'
 
+const baseUrl = 'https://dfa9f657ebcd5252.mokky.dev'
 const items = ref([])
 const cart = ref([])
 const isDrawerOpen = ref(false)
 const isMobileMenuOpen = ref(false)
+const quantity = ref(1)
+const isCreatingOrder = ref(false)
 
-const baseUrl = 'https://dfa9f657ebcd5252.mokky.dev'
+const increaseQuantity = () => quantity.value++
+const decreaseQuantity = () => {
+  if (quantity.value === 1) return
+  quantity.value--
+}
 
-const handleCloseDrawer = () => (isDrawerOpen.value = false)
-const handleOpenDrawer = () => (isDrawerOpen.value = true)
+const totalPrice = computed(() =>
+  cart.value.reduce((acc, item) => acc + item.price * item.quantity, 0),
+)
+const taxCart = computed(() => totalPrice.value * 0.04)
+
+const handleCloseDrawer = () => {
+  isDrawerOpen.value = false
+}
+const handleOpenDrawer = () => {
+  isDrawerOpen.value = true
+  isMobileMenuOpen.value = false
+}
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
@@ -38,15 +55,57 @@ const onChangeSearchInput = (event) => {
 }
 
 const addToCart = (item) => {
-  if (!item.isAdded) {
-    cart.value.push(item)
-    item.isAdded = true
-  } else {
-    cart.value.splice(cart.value.indexOf(item), 1)
-    item.isAdded = false
-  }
+  cart.value.push({
+    ...item,
+    quantity: 1,
+    isAdded: true,
+  })
+  item.isAdded = true
+}
 
-  console.log(cart)
+// const removeFromCart = (item) => {
+//   cart.value.splice(cart.value.indexOf(item), 1)
+//   item.isAdded = false
+// }
+const removeFromCart = (item) => {
+  cart.value = cart.value.filter((cartItem) => cartItem.id !== item.id)
+
+  const found = items.value.find((i) => i.id === item.id)
+  if (found) found.isAdded = false
+}
+
+const createNewOrder = async () => {
+  try {
+    isCreatingOrder.value = true
+    const { data } = await axios.post(`${baseUrl}/orders`, {
+      items: cart.value,
+      totalPrice: totalPrice.value,
+      tax: taxCart.value,
+    })
+
+    cart.value = []
+
+    items.value = items.value.map((item) => ({
+      ...item,
+      isAdded: false,
+    }))
+
+    return data
+  } catch (error) {
+    console.log(error)
+  } finally {
+    isCreatingOrder.value = false
+  }
+}
+
+const onClickAddPlus = (item) => {
+  const exists = cart.value.some((cartItem) => cartItem.id === item.id)
+
+  if (!exists) {
+    addToCart(item)
+  } else {
+    removeFromCart(item)
+  }
 }
 
 const fetchFavorites = async () => {
@@ -132,13 +191,26 @@ watch(filters, fetchItems)
 
 provide('cart', {
   cart,
+  totalPrice,
+  quantity,
   handleCloseDrawer,
   handleOpenDrawer,
+  addToCart,
+  removeFromCart,
+  increaseQuantity,
+  decreaseQuantity,
 })
 </script>
 
 <template>
-  <Drawer v-if="isDrawerOpen" @handle-close-drawer="handleCloseDrawer" />
+  <Drawer
+    v-if="isDrawerOpen"
+    :total-price="totalPrice"
+    :tax-cart="taxCart"
+    :is-creating-order="isCreatingOrder"
+    @handle-close-drawer="handleCloseDrawer"
+    @create-new-order="createNewOrder"
+  />
   <Wrapper>
     <Header :is-mobile-menu-open="isMobileMenuOpen" @toggle-mobile-menu="toggleMobileMenu" />
     <Container>
@@ -169,7 +241,11 @@ provide('cart', {
           </select>
         </div>
       </div>
-      <CardList :items="items" @add-to-favorite="addToFavorite" @add-to-cart="addToCart" />
+      <CardList
+        :items="items"
+        @add-to-favorite="addToFavorite"
+        @on-click-add-plus="onClickAddPlus"
+      />
     </Container>
     <Footer />
   </Wrapper>

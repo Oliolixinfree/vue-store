@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 import AddIcon from '@/icons/AddIcon.vue'
 import DeleteIcon from '@/icons/DeleteIcon.vue'
 import RemoveIcon from '@/icons/RemoveIcon.vue'
@@ -13,15 +13,10 @@ defineProps({
   released: String,
   gener: String,
   type: String,
+  quantity: Number,
 })
 
-const quantity = ref(1)
-
-const increaseQuantity = () => quantity.value++
-const decreaseQuantity = () => {
-  if (quantity.value === 1) return
-  quantity.value--
-}
+const emit = defineEmits(['onClickRemove', 'increaseQuantity', 'decreaseQuantity'])
 </script>
 
 <template>
@@ -43,14 +38,14 @@ const decreaseQuantity = () => {
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2">
           <div
-            @click="decreaseQuantity"
+            @click="() => emit('decreaseQuantity')"
             class="bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 hover:shadow-md p-0.5 rounded-lg transition cursor-pointer"
           >
             <RemoveIcon class="w-5 h-5" />
           </div>
           <span class="font-medium">{{ quantity }}</span>
           <div
-            @click="increaseQuantity"
+            @click="() => emit('increaseQuantity')"
             class="bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 hover:shadow-md p-0.5 rounded-lg transition cursor-pointer"
           >
             <AddIcon class="w-5 h-5" />
@@ -58,6 +53,7 @@ const decreaseQuantity = () => {
         </div>
 
         <div
+          @click="emit('onClickRemove')"
           class="self-end bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 hover:shadow-md p-0.5 rounded-lg transition cursor-pointer"
         >
           <DeleteIcon />

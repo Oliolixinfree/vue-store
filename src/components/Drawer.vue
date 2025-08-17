@@ -1,8 +1,19 @@
 <script setup>
 import ArrowBackIcon from '@/icons/ArrowBackIcon.vue'
 import CartItemList from './CartItemList.vue'
+import { computed } from 'vue'
 
-const emit = defineEmits(['handleCloseDrawer'])
+const props = defineProps({
+  totalPrice: Number,
+  taxCart: Number,
+  isCreatingOrder: Boolean,
+})
+
+const emit = defineEmits(['handleCloseDrawer', 'createNewOrder'])
+
+const buttonDisabled = computed(
+  () => props.isCreatingOrder || props.totalPrice === 0 || props.taxCart === 0,
+)
 </script>
 
 <template>
@@ -26,15 +37,17 @@ const emit = defineEmits(['handleCloseDrawer'])
       <div class="flex gap-0.5">
         <span class="text-neutral-400">Total:</span>
         <div class="flex-1 border-b border-dotted border-neutral-200"></div>
-        <span class="font-semibold">50$</span>
+        <span class="font-semibold">{{ totalPrice.toFixed(2) }} $</span>
       </div>
       <div class="flex gap-0.5">
         <span class="text-neutral-400">Tax 4%:</span>
         <div class="flex-1 border-b border-dotted border-neutral-200"></div>
-        <span class="font-semibold">2$</span>
+        <span class="font-semibold">{{ taxCart.toFixed(2) }} $</span>
       </div>
     </div>
     <button
+      :disabled="buttonDisabled"
+      @click="() => emit('createNewOrder')"
       class="bg-neutral-500 w-full rounded-lg py-2 text-white hover:bg-neutral-500/80 active:bg-neutral-600 disabled:bg-neutral-200 disabled:cursor-default cursor-pointer transition"
     >
       Check out now
