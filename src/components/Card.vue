@@ -4,7 +4,7 @@ import AddIcon from '@/icons/AddIcon.vue'
 import CheckIcon from '@/icons/CheckIcon.vue'
 import FavoriteCheckedIcon from '@/icons/FavoriteCheckedIcon.vue'
 
-const props = defineProps({
+defineProps({
   id: Number,
   imageUrl: String,
   title: String,
@@ -25,6 +25,7 @@ const props = defineProps({
     class="flex flex-col relative bg-white border border-neutral-200 rounded-lg p-6 cursor-pointer transition hover:-translate-y-0.5 hover:shadow-md"
   >
     <div
+      v-if="onClickFavorite"
       @click="onClickFavorite"
       :class="isFavorite && 'bg-pink-200 hover:bg-pink-300'"
       class="absolute top-6 left-6 bg-neutral-100 p-0.5 rounded-lg hover:bg-neutral-200 hover:shadow-md"
@@ -61,6 +62,7 @@ const props = defineProps({
         <span class="font-semibold">{{ price }}$</span>
       </div>
       <div
+        v-if="onClickAdd"
         @click="onClickAdd"
         class="p-0.5 rounded-lg hover:shadow-md"
         :class="{

@@ -17,14 +17,22 @@ const { handleOpenDrawer, totalPrice } = inject('cart')
         <CartIcon />
         <span class="font-semibold">{{ totalPrice.toFixed(2) }} $</span>
       </li>
-      <li class="flex items-center gap-2 text-neutral-500 hover:text-neutral-500/80 cursor-pointer">
-        <FavoriteIcon />
-        <span class="font-semibold">Favorite</span>
-      </li>
-      <li class="flex items-center gap-2 text-neutral-500 hover:text-neutral-500/80 cursor-pointer">
-        <ProfileIcon />
-        <span class="font-semibold">Profile</span>
-      </li>
+      <router-link to="/favorites">
+        <li
+          class="flex items-center gap-2 text-neutral-500 hover:text-neutral-500/80 cursor-pointer"
+        >
+          <FavoriteIcon />
+          <span class="font-semibold">Favorite</span>
+        </li>
+      </router-link>
+      <router-link to="/profile">
+        <li
+          class="flex items-center gap-2 text-neutral-500 hover:text-neutral-500/80 cursor-pointer"
+        >
+          <ProfileIcon />
+          <span class="font-semibold">Profile</span>
+        </li>
+      </router-link>
     </ul>
   </nav>
 </template>

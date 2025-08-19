@@ -1,39 +1,61 @@
 <script setup>
-import { computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
 import ArrowBackIcon from '@/icons/ArrowBackIcon.vue'
 import CartItemList from './CartItemList.vue'
+import axios from 'axios'
+import { baseUrl } from '@/shared/api.config'
+import CartInfoBlock from './CartInfoBlock.vue'
 
 const props = defineProps({
   totalPrice: Number,
   taxCart: Number,
-  isCreatingOrder: Boolean,
   cartItems: Number,
 })
 
-const emit = defineEmits(['handleCloseDrawer', 'createNewOrder'])
+const { cart } = inject('cart')
+const emit = defineEmits(['handleCloseDrawer'])
+
+const isCreating = ref(false)
+const orderCreated = ref(false) // <-- состояние создания заказа
+const orderNumber = ref(null) // <-- номер заказа, если нужно
+
+const totalPrice = computed(() =>
+  cart.value.reduce((acc, item) => acc + item.price * item.quantity, 0),
+)
+const taxCart = computed(() => totalPrice.value * 0.04)
 
 const buttonDisabled = computed(
-  () => props.isCreatingOrder || props.totalPrice === 0 || props.taxCart === 0,
+  () => isCreating.value || props.totalPrice === 0 || props.taxCart === 0,
 )
-const lockScroll = () => {
-  document.body.style.overflow = 'hidden'
-}
 
-const unlockScroll = () => {
-  document.body.style.overflow = ''
-}
+const lockScroll = () => (document.body.style.overflow = 'hidden')
+const unlockScroll = () => (document.body.style.overflow = '')
 
-onMounted(() => {
-  lockScroll()
-})
-
-onUnmounted(() => {
-  unlockScroll()
-})
+onMounted(() => lockScroll())
+onUnmounted(() => unlockScroll())
 
 const handleClose = () => {
   unlockScroll()
   emit('handleCloseDrawer')
+}
+
+const createNewOrder = async () => {
+  try {
+    isCreating.value = true
+    const { data } = await axios.post(`${baseUrl}/orders`, {
+      items: cart.value,
+      totalPrice: totalPrice.value,
+      tax: taxCart.value,
+    })
+
+    cart.value = []
+    orderCreated.value = true
+    orderNumber.value = data.id || null // если сервер возвращает id заказа
+  } catch (error) {
+    console.log(error)
+  } finally {
+    isCreating.value = false
+  }
 }
 </script>
 
@@ -46,25 +68,26 @@ const handleClose = () => {
         @click="handleClose"
         class="transition hover:-translate-x-1 hover:fill-neutral-500/80 cursor-pointer"
       />
-      <h2 class="text-2xl font-semibold">Card</h2>
+      <h2 class="text-2xl font-semibold">Cart</h2>
     </div>
 
-    <div
-      v-if="totalPrice === 0 || taxCart === 0"
-      class="flex flex-col gap-2 items-center flex-1 justify-center p-6"
-    >
-      <h2 class="text-xl font-bold">Cart is empty</h2>
-      <p class="text-neutral-400 text-center">
-        Add products at least one product to place an order
-      </p>
-      <button
-        @click="() => emit('handleCloseDrawer')"
-        class="bg-neutral-500 w-1/2 rounded-lg py-2 text-white hover:bg-neutral-500/80 active:bg-neutral-600 disabled:bg-neutral-200 disabled:cursor-default cursor-pointer transition"
-      >
-        Go to store
-      </button>
-    </div>
+    <!-- Показать блок "Заказ создан", только если orderCreated = true -->
+    <CartInfoBlock
+      v-if="orderCreated"
+      title="Order placed"
+      :description="`Your order #${orderNumber} will be sent to courier delivery`"
+      :handleCloseDrawer="handleClose"
+    />
 
+    <!-- Показать блок "Корзина пустая", если totalPrice = 0 -->
+    <CartInfoBlock
+      v-else-if="totalPrice === 0 || taxCart === 0"
+      title="Cart is empty"
+      description="Add at least one product to place an order"
+      :handleCloseDrawer="handleClose"
+    />
+
+    <!-- Иначе показать список товаров и кнопку -->
     <div v-else class="flex flex-col flex-1 min-h-0">
       <div class="flex-1 overflow-y-auto px-6 py-4">
         <CartItemList />
@@ -91,7 +114,7 @@ const handleClose = () => {
           <div class="flex justify-center">
             <button
               :disabled="buttonDisabled"
-              @click="() => emit('createNewOrder')"
+              @click="createNewOrder"
               class="bg-neutral-500 w-1/2 rounded-lg py-2 text-white hover:bg-neutral-500/80 active:bg-neutral-600 disabled:bg-neutral-200 disabled:cursor-default cursor-pointer transition"
             >
               Check out now
