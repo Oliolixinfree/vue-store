@@ -16,15 +16,17 @@ const emit = defineEmits(['toggleMobileMenu'])
   <header
     class="sticky top-0 left-0 flex items-center justify-between border-b border-b-neutral-200 px-6 py-4 lg:px-8 bg-white z-20"
   >
-    <div
-      class="flex items-center gap-2 cursor-pointer hover:drop-shadow-[0_0_16px_#42b883aa] transition"
-    >
-      <LogoIcon />
-      <div>
-        <h2 class="text-xl font-bold">Vue Store</h2>
-        <p class="text-neutral-400">Mock music store</p>
+    <router-link to="/">
+      <div
+        class="flex items-center gap-2 cursor-pointer hover:drop-shadow-[0_0_16px_#42b883aa] transition"
+      >
+        <LogoIcon />
+        <div>
+          <h2 class="text-xl font-bold">Vue Store</h2>
+          <p class="text-neutral-400">Mock music store</p>
+        </div>
       </div>
-    </div>
+    </router-link>
     <div @click="() => emit('toggleMobileMenu')" class="lg:hidden cursor-pointer">
       <CloseIcon
         v-if="isMobileMenuOpen"
